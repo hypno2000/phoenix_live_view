@@ -396,6 +396,21 @@ defmodule Phoenix.LiveView.Engine do
     to_live_comprehension(expr)
   end
 
+  defp to_live_struct(
+         {:live_component, meta, [socket, component, comp_assigns, [{:do, do_block} | opts]]},
+         tainted_vars,
+         vars,
+         assigns
+       ) do
+    do_block = maybe_block_to_rendered(do_block, tainted_vars, vars, assigns)
+
+    else_block =
+      maybe_block_to_rendered(Keyword.get(opts, :else, ""), tainted_vars, vars, assigns)
+
+    args = [socket, component, comp_assigns, [do: do_block, else: else_block]]
+    to_safe({:live_component, meta, args}, @catch_alls)
+  end
+
   defp to_live_struct(expr, _tainted_vars, _vars, _assigns) do
     to_safe(expr, @catch_alls)
   end

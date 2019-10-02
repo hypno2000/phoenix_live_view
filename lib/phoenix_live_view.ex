@@ -1099,6 +1099,11 @@ defmodule Phoenix.LiveView do
     end
   end
 
+  def live_component(%Socket{} = socket, component, assigns, blocks)
+      when is_atom(component) and is_list(assigns) do
+    live_component(socket, component, blocks ++ assigns)
+  end
+
   @doc """
   Returns true if the socket is connected.
 
