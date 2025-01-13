@@ -739,6 +739,8 @@ export default class LiveSocket {
     }, false)
     window.addEventListener("click", e => {
       console.log("click 1", this.rootViewSelector, e)
+      // Ignore if the click was made outside of this socket root view
+      if(!e.target.closest(this.viewSelector())){ return }
       let target = closestPhxBinding(e.target, PHX_LIVE_LINK)
       let type = target && target.getAttribute(PHX_LIVE_LINK)
       if(!type || !this.isConnected() || !this.main || DOM.wantsNewTab(e)){ return }
