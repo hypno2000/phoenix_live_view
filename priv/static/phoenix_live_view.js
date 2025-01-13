@@ -4834,7 +4834,10 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
         });
       }, false);
       window.addEventListener("click", (e) => {
-        console.log("click 1", this.rootViewSelector, e);
+        console.log("click 1", this.rootViewSelector, e.target.closest(this.viewSelector()));
+        if (!e.target.closest(this.viewSelector())) {
+          return;
+        }
         let target = closestPhxBinding(e.target, PHX_LIVE_LINK);
         let type = target && target.getAttribute(PHX_LIVE_LINK);
         if (!type || !this.isConnected() || !this.main || dom_default.wantsNewTab(e)) {
