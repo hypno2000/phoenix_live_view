@@ -391,8 +391,13 @@ export default class LiveSocket {
     }
   }
 
-  viewSelector() {
-    return `${PHX_VIEW_SELECTOR}${this.rootViewSelector || ""}`
+  viewSelector(){
+    if (this.rootViewSelector) {
+      return `${this.rootViewSelector} ${PHX_VIEW_SELECTOR}`
+    }
+    else {
+      return PHX_VIEW_SELECTOR
+    }
   }
 
   joinRootViews(){
