@@ -4622,7 +4622,7 @@ var LiveSocket = class {
     if (!dead) {
       this.bindForms();
     }
-    this.bind({ keyup: "keyup", keydown: "keydown" }, (e, type, view, targetEl, phxEvent, phxTarget) => {
+    this.bind({ keyup: "keyup", keydown: "keydown" }, (e, type, view, targetEl, phxEvent, _phxTarget) => {
       let matchKey = targetEl.getAttribute(this.binding(PHX_KEY));
       let pressedKey = e.key && e.key.toLowerCase();
       if (matchKey && matchKey.toLowerCase() !== pressedKey) {
@@ -4801,7 +4801,7 @@ var LiveSocket = class {
       });
     }, false);
     window.addEventListener("click", (e) => {
-      if (!e.target.closest(this.viewSelector())) {
+      if (this.rootViewSelector && !e.target.closest(this.viewSelector())) {
         return;
       }
       let target = closestPhxBinding(e.target, PHX_LIVE_LINK);

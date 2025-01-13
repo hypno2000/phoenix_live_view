@@ -392,7 +392,7 @@ export default class LiveSocket {
   }
 
   viewSelector(){
-    if (this.rootViewSelector) {
+    if(this.rootViewSelector){
       return `${this.rootViewSelector} ${PHX_VIEW_SELECTOR}`
     }
     else {
@@ -468,8 +468,8 @@ export default class LiveSocket {
     // If there's a rootViewSelector, don't default to `this.main`
     // since it's not guaranteed to belong to same liveSocket.
     // Maybe `this.embbededMode = boolean()` would be a more clear check?
-    if (!view && !this.rootViewSelector){ view = this.main }
-    if (view){ callback(view) }
+    if(!view && !this.rootViewSelector){ view = this.main }
+    if(view){ callback(view) }
   }
 
   withinOwners(childEl, callback){
@@ -559,7 +559,7 @@ export default class LiveSocket {
     if(!dead){ this.bindNav() }
     this.bindClicks()
     if(!dead){ this.bindForms() }
-    this.bind({keyup: "keyup", keydown: "keydown"}, (e, type, view, targetEl, phxEvent, phxTarget) => {
+    this.bind({keyup: "keyup", keydown: "keydown"}, (e, type, view, targetEl, phxEvent, _phxTarget) => {
       let matchKey = targetEl.getAttribute(this.binding(PHX_KEY))
       let pressedKey = e.key && e.key.toLowerCase() // chrome clicked autocompletes send a keydown without key
       if(matchKey && matchKey.toLowerCase() !== pressedKey){ return }
@@ -734,8 +734,9 @@ export default class LiveSocket {
       })
     }, false)
     window.addEventListener("click", e => {
-      // Ignore if the click was made outside of this socket root view
-      if(!e.target.closest(this.viewSelector())){ return }
+      // Ignore this click if target is outside of current sockets root view
+      if(this.rootViewSelector && !e.target.closest(this.viewSelector())){ return }
+
       let target = closestPhxBinding(e.target, PHX_LIVE_LINK)
       let type = target && target.getAttribute(PHX_LIVE_LINK)
       if(!type || !this.isConnected() || !this.main || DOM.wantsNewTab(e)){ return }
