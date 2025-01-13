@@ -717,7 +717,9 @@ export default class LiveSocket {
       }, 100)
     })
     window.addEventListener("popstate", event => {
+      console.log("popstate 1", event)
       if(!this.registerNewLocation(window.location)){ return }
+      console.log("popstate 2", event)
       let {type, id, root, scroll} = event.state || {}
       let href = window.location.href
 
@@ -736,9 +738,11 @@ export default class LiveSocket {
       })
     }, false)
     window.addEventListener("click", e => {
+      console.log("click 1", e)
       let target = closestPhxBinding(e.target, PHX_LIVE_LINK)
       let type = target && target.getAttribute(PHX_LIVE_LINK)
       if(!type || !this.isConnected() || !this.main || DOM.wantsNewTab(e)){ return }
+      console.log("click 2", e)
 
       // When wrapping an SVG element in an anchor tag, the href can be an SVGAnimatedString
       let href = target.href instanceof SVGAnimatedString ? target.href.baseVal : target.href
@@ -798,7 +802,9 @@ export default class LiveSocket {
   }
 
   historyPatch(href, linkState, linkRef = this.setPendingLink(href)){
+    console.log("historyPatch 1", href)
     if(!this.commitPendingLink(linkRef)){ return }
+    console.log("historyPatch 2", href)
 
     Browser.pushState(linkState, {type: "patch", id: this.main.id}, href)
     DOM.dispatchEvent(window, "phx:navigate", {detail: {patch: true, href, pop: false}})
@@ -806,7 +812,9 @@ export default class LiveSocket {
   }
 
   historyRedirect(href, linkState, flash){
+    console.log("historyRedirect 1", href)
     if(!this.isConnected() || !this.main.isMain()){ return Browser.redirect(href, flash) }
+    console.log("historyRedirect 2", href)
 
     // convert to full href if only path prefix
     if(/^\/$|^\/[^\/]+.*$/.test(href)){
