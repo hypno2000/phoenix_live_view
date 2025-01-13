@@ -4466,9 +4466,7 @@ var LiveSocket = class {
   }
   joinRootViews() {
     let rootsFound = false;
-    console.log(`${this.viewSelector()}:not([${PHX_PARENT_ID}])`);
     dom_default.all(document, `${this.viewSelector()}:not([${PHX_PARENT_ID}])`, (rootEl) => {
-      console.log({ rootEl });
       if (!this.getRootById(rootEl.id)) {
         let view = this.newRootView(rootEl);
         view.setHref(this.getHref());
@@ -4781,11 +4779,9 @@ var LiveSocket = class {
       }, 100);
     });
     window.addEventListener("popstate", (event) => {
-      console.log("popstate 1", this.rootViewSelector, event);
       if (!this.registerNewLocation(window.location)) {
         return;
       }
-      console.log("popstate 2", this.rootViewSelector, event);
       let { type, id, root, scroll } = event.state || {};
       let href = window.location.href;
       dom_default.dispatchEvent(window, "phx:navigate", { detail: { href, patch: type === "patch", pop: true } });
@@ -4805,7 +4801,6 @@ var LiveSocket = class {
       });
     }, false);
     window.addEventListener("click", (e) => {
-      console.log("click 1", this.rootViewSelector, e.target.closest(this.viewSelector()));
       if (!e.target.closest(this.viewSelector())) {
         return;
       }
@@ -4814,7 +4809,6 @@ var LiveSocket = class {
       if (!type || !this.isConnected() || !this.main || dom_default.wantsNewTab(e)) {
         return;
       }
-      console.log("click 2", this.rootViewSelector, e);
       let href = target.href instanceof SVGAnimatedString ? target.href.baseVal : target.href;
       let linkState = target.getAttribute(PHX_LINK_STATE);
       e.preventDefault();
@@ -4867,21 +4861,17 @@ var LiveSocket = class {
     });
   }
   historyPatch(href, linkState, linkRef = this.setPendingLink(href)) {
-    console.log("historyPatch 1", this.rootViewSelector, href);
     if (!this.commitPendingLink(linkRef)) {
       return;
     }
-    console.log("historyPatch 2", this.rootViewSelector, href);
     browser_default.pushState(linkState, { type: "patch", id: this.main.id }, href);
     dom_default.dispatchEvent(window, "phx:navigate", { detail: { patch: true, href, pop: false } });
     this.registerNewLocation(window.location);
   }
   historyRedirect(href, linkState, flash) {
-    console.log("historyRedirect 1", this.rootViewSelector, href);
     if (!this.isConnected() || !this.main.isMain()) {
       return browser_default.redirect(href, flash);
     }
-    console.log("historyRedirect 2", this.rootViewSelector, href);
     if (/^\/$|^\/[^\/]+.*$/.test(href)) {
       let { protocol, host } = window.location;
       href = `${protocol}//${host}${href}`;
