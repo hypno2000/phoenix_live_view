@@ -4241,7 +4241,9 @@ var LiveSocket = class {
   }
   enableLatencySim(upperBoundMs) {
     this.enableDebug();
-    console.log("latency simulator enabled for the duration of this browser session. Call disableLatencySim() to disable");
+    console.log(
+      "latency simulator enabled for the duration of this browser session. Call disableLatencySim() to disable"
+    );
     this.sessionStorage.setItem(PHX_LV_LATENCY_SIM, upperBoundMs);
   }
   disableLatencySim() {
@@ -4354,7 +4356,9 @@ var LiveSocket = class {
         return push().receive("timeout", () => {
           if (view.joinCount === oldJoinCount && !view.isDestroyed()) {
             this.reloadWithJitter(view, () => {
-              this.log(view, "timeout", () => ["received timeout while communicating with server. Falling back to hard refresh for recovery"]);
+              this.log(view, "timeout", () => [
+                "received timeout while communicating with server. Falling back to hard refresh for recovery"
+              ]);
             });
           }
         });
@@ -4372,7 +4376,10 @@ var LiveSocket = class {
       if (view.isDestroyed()) {
         return;
       }
-      fakePush.receives.reduce((acc, [kind, cb]) => acc.receive(kind, cb), push());
+      fakePush.receives.reduce(
+        (acc, [kind, cb]) => acc.receive(kind, cb),
+        push()
+      );
     }, latency);
     return fakePush;
   }
@@ -4382,7 +4389,13 @@ var LiveSocket = class {
     let minMs = this.reloadJitterMin;
     let maxMs = this.reloadJitterMax;
     let afterMs = Math.floor(Math.random() * (maxMs - minMs + 1)) + minMs;
-    let tries = browser_default.updateLocal(this.localStorage, window.location.pathname, CONSECUTIVE_RELOADS, 0, (count) => count + 1);
+    let tries = browser_default.updateLocal(
+      this.localStorage,
+      window.location.pathname,
+      CONSECUTIVE_RELOADS,
+      0,
+      (count) => count + 1
+    );
     if (tries > this.maxReloads) {
       afterMs = this.failsafeJitter;
     }
@@ -4391,9 +4404,13 @@ var LiveSocket = class {
         return;
       }
       view.destroy();
-      log ? log() : this.log(view, "join", () => [`encountered ${tries} consecutive reloads`]);
+      log ? log() : this.log(view, "join", () => [
+        `encountered ${tries} consecutive reloads`
+      ]);
       if (tries > this.maxReloads) {
-        this.log(view, "join", () => [`exceeded ${this.maxReloads} consecutive reloads. Entering failsafe mode`]);
+        this.log(view, "join", () => [
+          `exceeded ${this.maxReloads} consecutive reloads. Entering failsafe mode`
+        ]);
       }
       if (this.hasPendingLink()) {
         window.location = this.pendingLink;
@@ -4437,18 +4454,23 @@ var LiveSocket = class {
   }
   joinRootViews() {
     let rootsFound = false;
-    dom_default.all(document, `${this.viewSelector()}:not([${PHX_PARENT_ID}])`, (rootEl) => {
-      console.log({ rootEl });
-      if (!this.getRootById(rootEl.id)) {
-        let view = this.newRootView(rootEl);
-        view.setHref(this.getHref());
-        view.join();
-        if (rootEl.hasAttribute(PHX_MAIN)) {
-          this.main = view;
+    console.log(`${this.viewSelector()}:not([${PHX_PARENT_ID}])`);
+    dom_default.all(
+      document,
+      `${this.viewSelector()}:not([${PHX_PARENT_ID}])`,
+      (rootEl) => {
+        console.log({ rootEl });
+        if (!this.getRootById(rootEl.id)) {
+          let view = this.newRootView(rootEl);
+          view.setHref(this.getHref());
+          view.join();
+          if (rootEl.hasAttribute(PHX_MAIN)) {
+            this.main = view;
+          }
         }
+        rootsFound = true;
       }
-      rootsFound = true;
-    });
+    );
     return rootsFound;
   }
   redirect(to, flash) {
@@ -4467,7 +4489,9 @@ var LiveSocket = class {
     this.main.join((joinCount, onDone) => {
       if (joinCount === 1 && this.commitPendingLink(linkRef)) {
         this.requestDOMUpdate(() => {
-          dom_default.findPhxSticky(document).forEach((el) => newMainEl.appendChild(el));
+          dom_default.findPhxSticky(document).forEach(
+            (el) => newMainEl.appendChild(el)
+          );
           this.outgoingMainEl.replaceWith(newMainEl);
           this.outgoingMainEl = null;
           callback && callback(linkRef);
@@ -4496,7 +4520,10 @@ var LiveSocket = class {
     return view;
   }
   owner(childEl, callback) {
-    let view = maybe(childEl.closest(this.viewSelector()), (el) => this.getViewByEl(el));
+    let view = maybe(
+      childEl.closest(this.viewSelector()),
+      (el) => this.getViewByEl(el)
+    );
     if (!view && !this.rootViewSelector) {
       view = this.main;
     }
@@ -4509,7 +4536,10 @@ var LiveSocket = class {
   }
   getViewByEl(el) {
     let rootId = el.getAttribute(PHX_ROOT_ID);
-    return maybe(this.getRootById(rootId), (root) => root.getDescendentByEl(el));
+    return maybe(
+      this.getRootById(rootId),
+      (root) => root.getDescendentByEl(el)
+    );
   }
   getRootById(id) {
     return this.roots[id];
@@ -4580,13 +4610,17 @@ var LiveSocket = class {
     });
     document.body.addEventListener("click", function() {
     });
-    window.addEventListener("pageshow", (e) => {
-      if (e.persisted) {
-        this.getSocket().disconnect();
-        this.withPageLoading({ to: window.location.href, kind: "redirect" });
-        window.location.reload();
-      }
-    }, true);
+    window.addEventListener(
+      "pageshow",
+      (e) => {
+        if (e.persisted) {
+          this.getSocket().disconnect();
+          this.withPageLoading({ to: window.location.href, kind: "redirect" });
+          window.location.reload();
+        }
+      },
+      true
+    );
     if (!dead) {
       this.bindNav();
     }
@@ -4594,33 +4628,45 @@ var LiveSocket = class {
     if (!dead) {
       this.bindForms();
     }
-    this.bind({ keyup: "keyup", keydown: "keydown" }, (e, type, view, targetEl, phxEvent, phxTarget) => {
-      let matchKey = targetEl.getAttribute(this.binding(PHX_KEY));
-      let pressedKey = e.key && e.key.toLowerCase();
-      if (matchKey && matchKey.toLowerCase() !== pressedKey) {
-        return;
-      }
-      let data = { key: e.key, ...this.eventMeta(type, e, targetEl) };
-      js_default.exec(type, phxEvent, view, targetEl, ["push", { data }]);
-    });
-    this.bind({ blur: "focusout", focus: "focusin" }, (e, type, view, targetEl, phxEvent, phxTarget) => {
-      if (!phxTarget) {
+    this.bind(
+      { keyup: "keyup", keydown: "keydown" },
+      (e, type, view, targetEl, phxEvent, phxTarget) => {
+        let matchKey = targetEl.getAttribute(this.binding(PHX_KEY));
+        let pressedKey = e.key && e.key.toLowerCase();
+        if (matchKey && matchKey.toLowerCase() !== pressedKey) {
+          return;
+        }
         let data = { key: e.key, ...this.eventMeta(type, e, targetEl) };
         js_default.exec(type, phxEvent, view, targetEl, ["push", { data }]);
       }
-    });
-    this.bind({ blur: "blur", focus: "focus" }, (e, type, view, targetEl, phxEvent, phxTarget) => {
-      if (phxTarget === "window") {
-        let data = this.eventMeta(type, e, targetEl);
-        js_default.exec(type, phxEvent, view, targetEl, ["push", { data }]);
+    );
+    this.bind(
+      { blur: "focusout", focus: "focusin" },
+      (e, type, view, targetEl, phxEvent, phxTarget) => {
+        if (!phxTarget) {
+          let data = { key: e.key, ...this.eventMeta(type, e, targetEl) };
+          js_default.exec(type, phxEvent, view, targetEl, ["push", { data }]);
+        }
       }
-    });
+    );
+    this.bind(
+      { blur: "blur", focus: "focus" },
+      (e, type, view, targetEl, phxEvent, phxTarget) => {
+        if (phxTarget === "window") {
+          let data = this.eventMeta(type, e, targetEl);
+          js_default.exec(type, phxEvent, view, targetEl, ["push", { data }]);
+        }
+      }
+    );
     window.addEventListener("dragover", (e) => e.preventDefault());
     window.addEventListener("drop", (e) => {
       e.preventDefault();
-      let dropTargetId = maybe(closestPhxBinding(e.target, this.binding(PHX_DROP_TARGET)), (trueTarget) => {
-        return trueTarget.getAttribute(this.binding(PHX_DROP_TARGET));
-      });
+      let dropTargetId = maybe(
+        closestPhxBinding(e.target, this.binding(PHX_DROP_TARGET)),
+        (trueTarget) => {
+          return trueTarget.getAttribute(this.binding(PHX_DROP_TARGET));
+        }
+      );
       let dropTarget = dropTargetId && document.getElementById(dropTargetId);
       let files = Array.from(e.dataTransfer.files || []);
       if (!dropTarget || dropTarget.disabled || files.length === 0 || !(dropTarget.files instanceof FileList)) {
@@ -4634,7 +4680,9 @@ var LiveSocket = class {
       if (!dom_default.isUploadInput(uploadTarget)) {
         return;
       }
-      let files = Array.from(e.detail.files || []).filter((f) => f instanceof File || f instanceof Blob);
+      let files = Array.from(e.detail.files || []).filter(
+        (f) => f instanceof File || f instanceof Blob
+      );
       LiveUploader.trackFiles(uploadTarget, files);
       uploadTarget.dispatchEvent(new Event("input", { bubbles: true }));
     });
@@ -4690,38 +4738,48 @@ var LiveSocket = class {
     }
   }
   bindClicks() {
-    window.addEventListener("mousedown", (e) => this.clickStartedAtTarget = e.target);
+    window.addEventListener(
+      "mousedown",
+      (e) => this.clickStartedAtTarget = e.target
+    );
     this.bindClick("click", "click");
   }
   bindClick(eventName, bindingName) {
     let click = this.binding(bindingName);
-    window.addEventListener(eventName, (e) => {
-      let target = null;
-      if (e.detail === 0)
-        this.clickStartedAtTarget = e.target;
-      let clickStartedAtTarget = this.clickStartedAtTarget || e.target;
-      target = closestPhxBinding(clickStartedAtTarget, click);
-      this.dispatchClickAway(e, clickStartedAtTarget);
-      this.clickStartedAtTarget = null;
-      let phxEvent = target && target.getAttribute(click);
-      if (!phxEvent) {
-        if (dom_default.isNewPageClick(e, window.location)) {
-          this.unload();
+    window.addEventListener(
+      eventName,
+      (e) => {
+        let target = null;
+        if (e.detail === 0)
+          this.clickStartedAtTarget = e.target;
+        let clickStartedAtTarget = this.clickStartedAtTarget || e.target;
+        target = closestPhxBinding(clickStartedAtTarget, click);
+        this.dispatchClickAway(e, clickStartedAtTarget);
+        this.clickStartedAtTarget = null;
+        let phxEvent = target && target.getAttribute(click);
+        if (!phxEvent) {
+          if (dom_default.isNewPageClick(e, window.location)) {
+            this.unload();
+          }
+          return;
         }
-        return;
-      }
-      if (target.getAttribute("href") === "#") {
-        e.preventDefault();
-      }
-      if (target.hasAttribute(PHX_REF)) {
-        return;
-      }
-      this.debounce(target, e, "click", () => {
-        this.withinOwners(target, (view) => {
-          js_default.exec("click", phxEvent, view, target, ["push", { data: this.eventMeta("click", e, target) }]);
+        if (target.getAttribute("href") === "#") {
+          e.preventDefault();
+        }
+        if (target.hasAttribute(PHX_REF)) {
+          return;
+        }
+        this.debounce(target, e, "click", () => {
+          this.withinOwners(target, (view) => {
+            js_default.exec("click", phxEvent, view, target, [
+              "push",
+              { data: this.eventMeta("click", e, target) }
+            ]);
+          });
         });
-      });
-    }, false);
+      },
+      false
+    );
   }
   dispatchClickAway(e, clickStartedAt) {
     let phxClickAway = this.binding("click-away");
@@ -4730,7 +4788,10 @@ var LiveSocket = class {
         this.withinOwners(el, (view) => {
           let phxEvent = el.getAttribute(phxClickAway);
           if (js_default.isVisible(el) && js_default.isInViewport(el)) {
-            js_default.exec("click", phxEvent, view, el, ["push", { data: this.eventMeta("click", e, e.target) }]);
+            js_default.exec("click", phxEvent, view, el, [
+              "push",
+              { data: this.eventMeta("click", e, e.target) }
+            ]);
           }
         });
       }
@@ -4747,58 +4808,72 @@ var LiveSocket = class {
     window.addEventListener("scroll", (_e) => {
       clearTimeout(scrollTimer);
       scrollTimer = setTimeout(() => {
-        browser_default.updateCurrentState((state) => Object.assign(state, { scroll: window.scrollY }));
+        browser_default.updateCurrentState(
+          (state) => Object.assign(state, { scroll: window.scrollY })
+        );
       }, 100);
     });
-    window.addEventListener("popstate", (event) => {
-      if (!this.registerNewLocation(window.location)) {
-        return;
-      }
-      let { type, id, root, scroll } = event.state || {};
-      let href = window.location.href;
-      dom_default.dispatchEvent(window, "phx:navigate", { detail: { href, patch: type === "patch", pop: true } });
-      this.requestDOMUpdate(() => {
-        if (this.main.isConnected() && (type === "patch" && id === this.main.id)) {
-          this.main.pushLinkPatch(href, null, () => {
-            this.maybeScroll(scroll);
-          });
-        } else {
-          this.replaceMain(href, null, () => {
-            if (root) {
-              this.replaceRootHistory();
-            }
-            this.maybeScroll(scroll);
-          });
+    window.addEventListener(
+      "popstate",
+      (event) => {
+        if (!this.registerNewLocation(window.location)) {
+          return;
         }
-      });
-    }, false);
-    window.addEventListener("click", (e) => {
-      let target = closestPhxBinding(e.target, PHX_LIVE_LINK);
-      let type = target && target.getAttribute(PHX_LIVE_LINK);
-      if (!type || !this.isConnected() || !this.main || dom_default.wantsNewTab(e)) {
-        return;
-      }
-      let href = target.href instanceof SVGAnimatedString ? target.href.baseVal : target.href;
-      let linkState = target.getAttribute(PHX_LINK_STATE);
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      if (this.pendingLink === href) {
-        return;
-      }
-      this.requestDOMUpdate(() => {
-        if (type === "patch") {
-          this.pushHistoryPatch(href, linkState, target);
-        } else if (type === "redirect") {
-          this.historyRedirect(href, linkState);
-        } else {
-          throw new Error(`expected ${PHX_LIVE_LINK} to be "patch" or "redirect", got: ${type}`);
+        let { type, id, root, scroll } = event.state || {};
+        let href = window.location.href;
+        dom_default.dispatchEvent(window, "phx:navigate", {
+          detail: { href, patch: type === "patch", pop: true }
+        });
+        this.requestDOMUpdate(() => {
+          if (this.main.isConnected() && type === "patch" && id === this.main.id) {
+            this.main.pushLinkPatch(href, null, () => {
+              this.maybeScroll(scroll);
+            });
+          } else {
+            this.replaceMain(href, null, () => {
+              if (root) {
+                this.replaceRootHistory();
+              }
+              this.maybeScroll(scroll);
+            });
+          }
+        });
+      },
+      false
+    );
+    window.addEventListener(
+      "click",
+      (e) => {
+        let target = closestPhxBinding(e.target, PHX_LIVE_LINK);
+        let type = target && target.getAttribute(PHX_LIVE_LINK);
+        if (!type || !this.isConnected() || !this.main || dom_default.wantsNewTab(e)) {
+          return;
         }
-        let phxClick = target.getAttribute(this.binding("click"));
-        if (phxClick) {
-          this.requestDOMUpdate(() => this.execJS(target, phxClick, "click"));
+        let href = target.href instanceof SVGAnimatedString ? target.href.baseVal : target.href;
+        let linkState = target.getAttribute(PHX_LINK_STATE);
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if (this.pendingLink === href) {
+          return;
         }
-      });
-    }, false);
+        this.requestDOMUpdate(() => {
+          if (type === "patch") {
+            this.pushHistoryPatch(href, linkState, target);
+          } else if (type === "redirect") {
+            this.historyRedirect(href, linkState);
+          } else {
+            throw new Error(
+              `expected ${PHX_LIVE_LINK} to be "patch" or "redirect", got: ${type}`
+            );
+          }
+          let phxClick = target.getAttribute(this.binding("click"));
+          if (phxClick) {
+            this.requestDOMUpdate(() => this.execJS(target, phxClick, "click"));
+          }
+        });
+      },
+      false
+    );
   }
   maybeScroll(scroll) {
     if (typeof scroll === "number") {
@@ -4834,7 +4909,9 @@ var LiveSocket = class {
       return;
     }
     browser_default.pushState(linkState, { type: "patch", id: this.main.id }, href);
-    dom_default.dispatchEvent(window, "phx:navigate", { detail: { patch: true, href, pop: false } });
+    dom_default.dispatchEvent(window, "phx:navigate", {
+      detail: { patch: true, href, pop: false }
+    });
     this.registerNewLocation(window.location);
   }
   historyRedirect(href, linkState, flash) {
@@ -4849,8 +4926,14 @@ var LiveSocket = class {
     this.withPageLoading({ to: href, kind: "redirect" }, (done) => {
       this.replaceMain(href, flash, (linkRef) => {
         if (linkRef === this.linkRef) {
-          browser_default.pushState(linkState, { type: "redirect", id: this.main.id, scroll }, href);
-          dom_default.dispatchEvent(window, "phx:navigate", { detail: { href, patch: false, pop: false } });
+          browser_default.pushState(
+            linkState,
+            { type: "redirect", id: this.main.id, scroll },
+            href
+          );
+          dom_default.dispatchEvent(window, "phx:navigate", {
+            detail: { href, patch: false, pop: false }
+          });
           this.registerNewLocation(window.location);
         }
         done();
@@ -4858,7 +4941,11 @@ var LiveSocket = class {
     });
   }
   replaceRootHistory() {
-    browser_default.pushState("replace", { root: true, type: "patch", id: this.main.id });
+    browser_default.pushState("replace", {
+      root: true,
+      type: "patch",
+      id: this.main.id
+    });
   }
   registerNewLocation(newLocation) {
     let { pathname, search } = this.currentLocation;
@@ -4872,76 +4959,103 @@ var LiveSocket = class {
   bindForms() {
     let iterations = 0;
     let externalFormSubmitted = false;
-    this.on("submit", (e) => {
-      let phxSubmit = e.target.getAttribute(this.binding("submit"));
-      let phxChange = e.target.getAttribute(this.binding("change"));
-      if (!externalFormSubmitted && phxChange && !phxSubmit) {
-        externalFormSubmitted = true;
-        e.preventDefault();
-        this.withinOwners(e.target, (view) => {
-          view.disableForm(e.target);
-          window.requestAnimationFrame(() => {
-            if (dom_default.isUnloadableFormSubmit(e)) {
-              this.unload();
-            }
-            e.target.submit();
+    this.on(
+      "submit",
+      (e) => {
+        let phxSubmit = e.target.getAttribute(this.binding("submit"));
+        let phxChange = e.target.getAttribute(this.binding("change"));
+        if (!externalFormSubmitted && phxChange && !phxSubmit) {
+          externalFormSubmitted = true;
+          e.preventDefault();
+          this.withinOwners(e.target, (view) => {
+            view.disableForm(e.target);
+            window.requestAnimationFrame(() => {
+              if (dom_default.isUnloadableFormSubmit(e)) {
+                this.unload();
+              }
+              e.target.submit();
+            });
           });
-        });
-      }
-    }, true);
-    this.on("submit", (e) => {
-      let phxEvent = e.target.getAttribute(this.binding("submit"));
-      if (!phxEvent) {
-        if (dom_default.isUnloadableFormSubmit(e)) {
-          this.unload();
         }
-        return;
-      }
-      e.preventDefault();
-      e.target.disabled = true;
-      this.withinOwners(e.target, (view) => {
-        js_default.exec("submit", phxEvent, view, e.target, ["push", { submitter: e.submitter }]);
-      });
-    }, false);
-    for (let type of ["change", "input"]) {
-      this.on(type, (e) => {
-        let phxChange = this.binding("change");
-        let input = e.target;
-        let inputEvent = input.getAttribute(phxChange);
-        let formEvent = input.form && input.form.getAttribute(phxChange);
-        let phxEvent = inputEvent || formEvent;
+      },
+      true
+    );
+    this.on(
+      "submit",
+      (e) => {
+        let phxEvent = e.target.getAttribute(this.binding("submit"));
         if (!phxEvent) {
+          if (dom_default.isUnloadableFormSubmit(e)) {
+            this.unload();
+          }
           return;
         }
-        if (input.type === "number" && input.validity && input.validity.badInput) {
-          return;
-        }
-        let dispatcher = inputEvent ? input : input.form;
-        let currentIterations = iterations;
-        iterations++;
-        let { at, type: lastType } = dom_default.private(input, "prev-iteration") || {};
-        if (at === currentIterations - 1 && type === "change" && lastType === "input") {
-          return;
-        }
-        dom_default.putPrivate(input, "prev-iteration", { at: currentIterations, type });
-        this.debounce(input, e, type, () => {
-          this.withinOwners(dispatcher, (view) => {
-            dom_default.putPrivate(input, PHX_HAS_FOCUSED, true);
-            if (!dom_default.isTextualInput(input)) {
-              this.setActiveElement(input);
-            }
-            js_default.exec("change", phxEvent, view, input, ["push", { _target: e.target.name, dispatcher }]);
-          });
+        e.preventDefault();
+        e.target.disabled = true;
+        this.withinOwners(e.target, (view) => {
+          js_default.exec("submit", phxEvent, view, e.target, [
+            "push",
+            { submitter: e.submitter }
+          ]);
         });
-      }, false);
+      },
+      false
+    );
+    for (let type of ["change", "input"]) {
+      this.on(
+        type,
+        (e) => {
+          let phxChange = this.binding("change");
+          let input = e.target;
+          let inputEvent = input.getAttribute(phxChange);
+          let formEvent = input.form && input.form.getAttribute(phxChange);
+          let phxEvent = inputEvent || formEvent;
+          if (!phxEvent) {
+            return;
+          }
+          if (input.type === "number" && input.validity && input.validity.badInput) {
+            return;
+          }
+          let dispatcher = inputEvent ? input : input.form;
+          let currentIterations = iterations;
+          iterations++;
+          let { at, type: lastType } = dom_default.private(input, "prev-iteration") || {};
+          if (at === currentIterations - 1 && type === "change" && lastType === "input") {
+            return;
+          }
+          dom_default.putPrivate(input, "prev-iteration", {
+            at: currentIterations,
+            type
+          });
+          this.debounce(input, e, type, () => {
+            this.withinOwners(dispatcher, (view) => {
+              dom_default.putPrivate(input, PHX_HAS_FOCUSED, true);
+              if (!dom_default.isTextualInput(input)) {
+                this.setActiveElement(input);
+              }
+              js_default.exec("change", phxEvent, view, input, [
+                "push",
+                { _target: e.target.name, dispatcher }
+              ]);
+            });
+          });
+        },
+        false
+      );
     }
     this.on("reset", (e) => {
       let form = e.target;
-      dom_default.resetForm(form, this.binding(PHX_FEEDBACK_FOR), this.binding(PHX_FEEDBACK_GROUP));
+      dom_default.resetForm(
+        form,
+        this.binding(PHX_FEEDBACK_FOR),
+        this.binding(PHX_FEEDBACK_GROUP)
+      );
       let input = Array.from(form.elements).find((el) => el.type === "reset");
       if (input) {
         window.requestAnimationFrame(() => {
-          input.dispatchEvent(new Event("input", { bubbles: true, cancelable: false }));
+          input.dispatchEvent(
+            new Event("input", { bubbles: true, cancelable: false })
+          );
         });
       }
     });
@@ -4956,9 +5070,18 @@ var LiveSocket = class {
     let defaultThrottle = this.defaults.throttle.toString();
     this.withinOwners(el, (view) => {
       let asyncFilter = () => !view.isDestroyed() && document.body.contains(el);
-      dom_default.debounce(el, event, phxDebounce, defaultDebounce, phxThrottle, defaultThrottle, asyncFilter, () => {
-        callback();
-      });
+      dom_default.debounce(
+        el,
+        event,
+        phxDebounce,
+        defaultDebounce,
+        phxThrottle,
+        defaultThrottle,
+        asyncFilter,
+        () => {
+          callback();
+        }
+      );
     });
   }
   silenceEvents(callback) {

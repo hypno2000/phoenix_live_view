@@ -170,7 +170,7 @@ export default class LiveSocket {
       onBeforeElUpdated: closure()},
     opts.dom || {})
     this.transitions = new TransitionSet()
-    this.rootViewSelector = opts.rootViewSelector 
+    this.rootViewSelector = opts.rootViewSelector
     window.addEventListener("pagehide", _e => {
       this.unloaded = true
     })
@@ -397,6 +397,7 @@ export default class LiveSocket {
 
   joinRootViews(){
     let rootsFound = false
+    console.log(`${this.viewSelector()}:not([${PHX_PARENT_ID}])`)
     DOM.all(document, `${this.viewSelector()}:not([${PHX_PARENT_ID}])`, rootEl => {
       console.log({rootEl})
       if(!this.getRootById(rootEl.id)){
