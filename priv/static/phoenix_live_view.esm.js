@@ -4756,11 +4756,11 @@ var LiveSocket = class {
       }, 100);
     });
     window.addEventListener("popstate", (event) => {
-      console.log("popstate 1", event);
+      console.log("popstate 1", this.rootViewSelector, event);
       if (!this.registerNewLocation(window.location)) {
         return;
       }
-      console.log("popstate 2", event);
+      console.log("popstate 2", this.rootViewSelector, event);
       let { type, id, root, scroll } = event.state || {};
       let href = window.location.href;
       dom_default.dispatchEvent(window, "phx:navigate", { detail: { href, patch: type === "patch", pop: true } });
@@ -4780,13 +4780,13 @@ var LiveSocket = class {
       });
     }, false);
     window.addEventListener("click", (e) => {
-      console.log("click 1", e);
+      console.log("click 1", this.rootViewSelector, e);
       let target = closestPhxBinding(e.target, PHX_LIVE_LINK);
       let type = target && target.getAttribute(PHX_LIVE_LINK);
       if (!type || !this.isConnected() || !this.main || dom_default.wantsNewTab(e)) {
         return;
       }
-      console.log("click 2", e);
+      console.log("click 2", this.rootViewSelector, e);
       let href = target.href instanceof SVGAnimatedString ? target.href.baseVal : target.href;
       let linkState = target.getAttribute(PHX_LINK_STATE);
       e.preventDefault();
@@ -4839,21 +4839,21 @@ var LiveSocket = class {
     });
   }
   historyPatch(href, linkState, linkRef = this.setPendingLink(href)) {
-    console.log("historyPatch 1", href);
+    console.log("historyPatch 1", this.rootViewSelector, href);
     if (!this.commitPendingLink(linkRef)) {
       return;
     }
-    console.log("historyPatch 2", href);
+    console.log("historyPatch 2", this.rootViewSelector, href);
     browser_default.pushState(linkState, { type: "patch", id: this.main.id }, href);
     dom_default.dispatchEvent(window, "phx:navigate", { detail: { patch: true, href, pop: false } });
     this.registerNewLocation(window.location);
   }
   historyRedirect(href, linkState, flash) {
-    console.log("historyRedirect 1", href);
+    console.log("historyRedirect 1", this.rootViewSelector, href);
     if (!this.isConnected() || !this.main.isMain()) {
       return browser_default.redirect(href, flash);
     }
-    console.log("historyRedirect 2", href);
+    console.log("historyRedirect 2", this.rootViewSelector, href);
     if (/^\/$|^\/[^\/]+.*$/.test(href)) {
       let { protocol, host } = window.location;
       href = `${protocol}//${host}${href}`;
