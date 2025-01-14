@@ -710,17 +710,27 @@ export default class LiveSocket {
     if(!Browser.canPushState()){ return }
     if(history.scrollRestoration){ history.scrollRestoration = "manual" }
     let scrollTimer = null
+
     window.addEventListener("scroll", _e => {
       clearTimeout(scrollTimer)
       scrollTimer = setTimeout(() => {
         Browser.updateCurrentState(state => Object.assign(state, {scroll: window.scrollY}))
       }, 100)
     })
-    window.addEventListener("navigate", event => {
-      console.log("navigate 1", this.rootViewSelector, event)
-      if(!this.registerNewLocation(window.location)){ return }
-      console.log("navigate 2", this.rootViewSelector, event)
+
+    window.navigation.addEventListener("navigate", event => {
+      const href = event.destination.url
+      if(!this.registerNewLocation(new URL(href))){ return }
+      DOM.dispatchEvent(window, "phx:navigate", {detail: {href, patch: true, pop: true}})
+      this.requestDOMUpdate(() => {
+        if(this.main.isConnected()){
+          this.main.pushLinkPatch(href, null)
+        } else {
+          this.replaceMain(href, null)
+        }
+      })
     }, false)
+
     window.addEventListener("popstate", event => {
       if(!this.registerNewLocation(window.location)){ return }
       let {type, id, root, scroll} = event.state || {}
@@ -740,6 +750,7 @@ export default class LiveSocket {
         }
       })
     }, false)
+
     window.addEventListener("click", e => {
       // Ignore this click if target is outside of current sockets root view
       if(this.rootViewSelector && !e.target.closest(this.viewSelector())){ return }

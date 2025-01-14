@@ -7175,12 +7175,19 @@ var LiveSocket = class {
         browser_default.updateCurrentState((state) => Object.assign(state, { scroll: window.scrollY }));
       }, 100);
     });
-    window.addEventListener("navigate", (event) => {
-      console.log("navigate 1", this.rootViewSelector, event);
-      if (!this.registerNewLocation(window.location)) {
+    window.navigation.addEventListener("navigate", (event) => {
+      const href = event.destination.url;
+      if (!this.registerNewLocation(new URL(href))) {
         return;
       }
-      console.log("navigate 2", this.rootViewSelector, event);
+      dom_default.dispatchEvent(window, "phx:navigate", { detail: { href, patch: true, pop: true } });
+      this.requestDOMUpdate(() => {
+        if (this.main.isConnected()) {
+          this.main.pushLinkPatch(href, null);
+        } else {
+          this.replaceMain(href, null);
+        }
+      });
     }, false);
     window.addEventListener("popstate", (event) => {
       if (!this.registerNewLocation(window.location)) {
