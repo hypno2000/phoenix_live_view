@@ -76,6 +76,8 @@
  *     liveSocket.connect("https://another-domain.com/live", Socket, {rootViewSelector: "[data-app='my-app']"})
 */
 
+import "@virtualstate/navigation/polyfill"
+
 import {
   BINDING_PREFIX,
   CONSECUTIVE_RELOADS,
@@ -714,6 +716,11 @@ export default class LiveSocket {
         Browser.updateCurrentState(state => Object.assign(state, {scroll: window.scrollY}))
       }, 100)
     })
+    window.addEventListener("navigate", event => {
+      console.log("navigate 1", this.rootViewSelector, event)
+      if(!this.registerNewLocation(window.location)){ return }
+      console.log("navigate 2", this.rootViewSelector, event)
+    }, false)
     window.addEventListener("popstate", event => {
       if(!this.registerNewLocation(window.location)){ return }
       let {type, id, root, scroll} = event.state || {}
