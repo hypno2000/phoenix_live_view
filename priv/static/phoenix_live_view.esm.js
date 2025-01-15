@@ -7121,6 +7121,9 @@ var LiveSocket = class {
   bindClick(eventName, bindingName) {
     let click = this.binding(bindingName);
     window.addEventListener(eventName, (e) => {
+      if (!this.isInsideRootView(e.target)) {
+        return;
+      }
       let target = null;
       if (e.detail === 0)
         this.clickStartedAtTarget = e.target;
@@ -7147,6 +7150,9 @@ var LiveSocket = class {
         });
       });
     }, false);
+  }
+  isInsideRootView(el) {
+    return !this.rootViewSelector || el.closest(this.viewSelector());
   }
   dispatchClickAway(e, clickStartedAt) {
     let phxClickAway = this.binding("click-away");
@@ -7176,11 +7182,9 @@ var LiveSocket = class {
       }, 100);
     });
     window.navigation.addEventListener("navigate", (e) => {
-      console.log("navigate start", this.rootViewSelector, e);
-      if (!this.rootViewSelector || e.originalEvent.target.closest(this.viewSelector())) {
+      if (this.isInsideRootView(e.originalEvent.target)) {
         return;
       }
-      console.log("navigate conti", this.rootViewSelector, e);
       const href = e.destination.url;
       if (!this.registerNewLocation(new URL(href))) {
         return;
@@ -7217,7 +7221,7 @@ var LiveSocket = class {
       });
     }, false);
     window.addEventListener("click", (e) => {
-      if (this.rootViewSelector && !e.target.closest(this.viewSelector())) {
+      if (!this.isInsideRootView(e.target)) {
         return;
       }
       let target = closestPhxBinding(e.target, PHX_LIVE_LINK);

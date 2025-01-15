@@ -665,6 +665,9 @@ export default class LiveSocket {
   bindClick(eventName, bindingName){
     let click = this.binding(bindingName)
     window.addEventListener(eventName, e => {
+      // Ignore this click if target is outside of current sockets root view
+      if(!this.isInsideRootView(e.target)){ return }
+
       let target = null
       // a synthetic click event (detail 0) will not have caused a mousedown event,
       // therefore the clickStartedAtTarget is stale
@@ -690,6 +693,10 @@ export default class LiveSocket {
         })
       })
     }, false)
+  }
+
+  isInsideRootView(el){
+    return !this.rootViewSelector || el.closest(this.viewSelector())
   }
 
   dispatchClickAway(e, clickStartedAt){
@@ -719,11 +726,9 @@ export default class LiveSocket {
     })
 
     window.navigation.addEventListener("navigate", e => {
-      console.log("navigate start", this.rootViewSelector, e)
       // Ignore this navigate if target is inside of current sockets root view,
-      // as it is handled by click already
-      if(!this.rootViewSelector || e.originalEvent.target.closest(this.viewSelector())){ return }
-      console.log("navigate conti", this.rootViewSelector, e)
+      // as it is already handled by the click handler
+      if(this.isInsideRootView(e.originalEvent.target)){ return }
 
       const href = e.destination.url
       if(!this.registerNewLocation(new URL(href))){ return }
@@ -759,7 +764,7 @@ export default class LiveSocket {
 
     window.addEventListener("click", e => {
       // Ignore this click if target is outside of current sockets root view
-      if(this.rootViewSelector && !e.target.closest(this.viewSelector())){ return }
+      if(!this.isInsideRootView(e.target)){ return }
 
       let target = closestPhxBinding(e.target, PHX_LIVE_LINK)
       let type = target && target.getAttribute(PHX_LIVE_LINK)
