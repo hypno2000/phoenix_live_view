@@ -7357,8 +7357,12 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
           browser_default.updateCurrentState((state) => Object.assign(state, { scroll: window.scrollY }));
         }, 100);
       });
-      window.navigation.addEventListener("navigate", (event) => {
-        const href = event.destination.url;
+      window.navigation.addEventListener("navigate", (e) => {
+        console.log("navigate", this.rootViewSelector, e);
+        if (!this.rootViewSelector || e.target.closest(this.viewSelector())) {
+          return;
+        }
+        const href = e.destination.url;
         if (!this.registerNewLocation(new URL(href))) {
           return;
         }

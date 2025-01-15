@@ -718,8 +718,13 @@ export default class LiveSocket {
       }, 100)
     })
 
-    window.navigation.addEventListener("navigate", event => {
-      const href = event.destination.url
+    window.navigation.addEventListener("navigate", e => {
+      console.log("navigate", this.rootViewSelector, e)
+      // Ignore this navigate if target is inside of current sockets root view,
+      // as it is handled by click already
+      if(!this.rootViewSelector || e.target.closest(this.viewSelector())){ return }
+
+      const href = e.destination.url
       if(!this.registerNewLocation(new URL(href))){ return }
       DOM.dispatchEvent(window, "phx:navigate", {detail: {href, patch: true, pop: true}})
       this.requestDOMUpdate(() => {
