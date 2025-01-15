@@ -719,10 +719,11 @@ export default class LiveSocket {
     })
 
     window.navigation.addEventListener("navigate", e => {
-      console.log("navigate", this.rootViewSelector, e)
+      console.log("navigate start", this.rootViewSelector, e)
       // Ignore this navigate if target is inside of current sockets root view,
       // as it is handled by click already
-      if(!this.rootViewSelector || e.target.closest(this.viewSelector())){ return }
+      if(!this.rootViewSelector || e.originalEvent.target.closest(this.viewSelector())){ return }
+      console.log("navigate conti", this.rootViewSelector, e)
 
       const href = e.destination.url
       if(!this.registerNewLocation(new URL(href))){ return }

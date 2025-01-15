@@ -7358,10 +7358,11 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
         }, 100);
       });
       window.navigation.addEventListener("navigate", (e) => {
-        console.log("navigate", this.rootViewSelector, e);
-        if (!this.rootViewSelector || e.target.closest(this.viewSelector())) {
+        console.log("navigate start", this.rootViewSelector, e);
+        if (!this.rootViewSelector || e.originalEvent.target.closest(this.viewSelector())) {
           return;
         }
+        console.log("navigate conti", this.rootViewSelector, e);
         const href = e.destination.url;
         if (!this.registerNewLocation(new URL(href))) {
           return;
