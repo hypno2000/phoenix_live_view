@@ -1,6 +1,6 @@
 # Phoenix LiveView
 
-Changes: https://github.com/hypno2000/phoenix_live_view/compare/f778e5bb1a4b0a29f8d688bbc6c0b7182dea51ca..0552518ffdf486c96fde3d44bb63bde40e704a2a
+Changes: https://github.com/hypno2000/phoenix_live_view/compare/f778e5bb1a4b0a29f8d688bbc6c0b7182dea51ca..2c18607a7e605c805a40bc0d7c7958250c44424a
 
 [![Actions Status](https://github.com/phoenixframework/phoenix_live_view/workflows/CI/badge.svg)](https://github.com/phoenixframework/phoenix_live_view/actions?query=workflow%3ACI) [![Hex.pm](https://img.shields.io/hexpm/v/phoenix_live_view.svg)](https://hex.pm/packages/phoenix_live_view) [![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/phoenix_live_view)
 
