@@ -70,7 +70,14 @@
  * @param {Object} [opts.localStorage] - An optional Storage compatible object
  * Useful for when LiveView won't have access to `localStorage`.
  * See `opts.sessionStorage` for examples.
+ * 
+ * @param {string} [opts.rootViewSelector] - An optional css selector for scoping root views.
+ * Useful when serving LiveViews from more than one domain. Example:
+ *
+ *     liveSocket.connect("https://another-domain.com/live", Socket, {rootViewSelector: "[data-app='my-app']"})
 */
+
+import "@virtualstate/navigation/polyfill"
 
 import {
   BINDING_PREFIX,
@@ -171,6 +178,7 @@ export default class LiveSocket {
     opts.dom || {})
     this.transitions = new TransitionSet()
     this.currentHistoryPosition = parseInt(this.sessionStorage.getItem(PHX_LV_HISTORY_POSITION)) || 0
+    this.rootViewSelector = opts.rootViewSelector
     window.addEventListener("pagehide", _e => {
       this.unloaded = true
     })
@@ -370,9 +378,22 @@ export default class LiveSocket {
     }
   }
 
+  viewSelector(){
+    if(this.rootViewSelector){
+      return `${this.rootViewSelector} ${PHX_VIEW_SELECTOR}`
+    }
+    else {
+      return PHX_VIEW_SELECTOR
+    }
+  }
+
+  isInsideRootView(el){
+    return !this.rootViewSelector || el.closest(this.viewSelector())
+  }
+
   joinRootViews(){
     let rootsFound = false
-    DOM.all(document, `${PHX_VIEW_SELECTOR}:not([${PHX_PARENT_ID}])`, rootEl => {
+    DOM.all(document, `${this.viewSelector()}:not([${PHX_PARENT_ID}])`, rootEl => {
       if(!this.getRootById(rootEl.id)){
         let view = this.newRootView(rootEl)
         // stickies cannot be mounted at the router and therefore should not
@@ -457,7 +478,11 @@ export default class LiveSocket {
   }
 
   owner(childEl, callback){
-    let view = maybe(childEl.closest(PHX_VIEW_SELECTOR), el => this.getViewByEl(el)) || this.main
+    let view = maybe(childEl.closest(this.viewSelector()), el => this.getViewByEl(el))
+    // If there's a rootViewSelector, don't default to `this.main`
+    // since it's not guaranteed to belong to same liveSocket.
+    // Maybe `this.embbededMode = boolean()` would be a more clear check?
+    if(!view && !this.rootViewSelector){ view = this.main }
     return view && callback ? callback(view) : view
   }
 
@@ -640,6 +665,9 @@ export default class LiveSocket {
   bindClick(eventName, bindingName){
     let click = this.binding(bindingName)
     window.addEventListener(eventName, e => {
+      // Ignore this click if target is outside of current sockets root view
+      if(!this.isInsideRootView(e.target)){ return }
+
       let target = null
       // a synthetic click event (detail 0) will not have caused a mousedown event,
       // therefore the clickStartedAtTarget is stale
@@ -693,6 +721,22 @@ export default class LiveSocket {
         Browser.updateCurrentState(state => Object.assign(state, {scroll: window.scrollY}))
       }, 100)
     })
+    window.navigation.addEventListener("navigate", e => {
+      // Ignore this navigate if target is inside of current sockets root view,
+      // as it is already handled by the click handler
+      if(this.isInsideRootView(e.originalEvent.target)){ return }
+
+      const href = e.destination.url
+      if(!this.registerNewLocation(new URL(href))){ return }
+      DOM.dispatchEvent(window, "phx:navigate", {detail: {href, patch: true, pop: true}})
+      this.requestDOMUpdate(() => {
+        if(this.main.isConnected()){
+          this.main.pushLinkPatch(href, null)
+        } else {
+          this.replaceMain(href, null)
+        }
+      })
+    }, false)
     window.addEventListener("popstate", event => {
       if(!this.registerNewLocation(window.location)){ return }
       let {type, backType, id, scroll, position} = event.state || {}
@@ -718,6 +762,9 @@ export default class LiveSocket {
       })
     }, false)
     window.addEventListener("click", e => {
+      // Ignore this click if target is outside of current sockets root view
+      if(!this.isInsideRootView(e.target)){ return }
+
       let target = closestPhxBinding(e.target, PHX_LIVE_LINK)
       let type = target && target.getAttribute(PHX_LIVE_LINK)
       if(!type || !this.isConnected() || !this.main || DOM.wantsNewTab(e)){ return }

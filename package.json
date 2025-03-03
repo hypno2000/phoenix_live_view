@@ -32,6 +32,7 @@
     "@babel/preset-env": "7.26.0",
     "@eslint/js": "^9.18.0",
     "@playwright/test": "^1.49.1",
+    "@virtualstate/navigation": "^1.0.1-alpha.206",
     "@stylistic/eslint-plugin-js": "^2.12.1",
     "css.escape": "^1.5.1",
     "eslint": "9.18.0",
