@@ -1,5 +1,7 @@
 # Phoenix LiveView
 
+Changes: https://github.com/hypno2000/phoenix_live_view/compare/5f13104f8653cb0ae4dd6e6913503359b01b47a6..0552518ffdf486c96fde3d44bb63bde40e704a2a
+
 [![Actions Status](https://github.com/phoenixframework/phoenix_live_view/workflows/CI/badge.svg)](https://github.com/phoenixframework/phoenix_live_view/actions?query=workflow%3ACI) [![Hex.pm](https://img.shields.io/hexpm/v/phoenix_live_view.svg)](https://hex.pm/packages/phoenix_live_view) [![Documentation](https://img.shields.io/badge/documentation-gray)](https://hexdocs.pm/phoenix_live_view)
 
 Phoenix LiveView enables rich, real-time user experiences with server-rendered HTML.
