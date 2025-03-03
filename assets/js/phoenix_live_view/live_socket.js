@@ -155,6 +155,7 @@ export default class LiveSocket {
     this.roots = {}
     this.href = window.location.href
     this.pendingLink = null
+    this.pendingLinkEvent = null
     this.currentLocation = clone(window.location)
     this.hooks = opts.hooks || {}
     this.uploaders = opts.uploaders || {}
@@ -721,22 +722,6 @@ export default class LiveSocket {
         Browser.updateCurrentState(state => Object.assign(state, {scroll: window.scrollY}))
       }, 100)
     })
-    window.navigation.addEventListener("navigate", e => {
-      // Ignore this navigate if target is inside of current sockets root view,
-      // as it is already handled by the click handler
-      if(!e.originalEvent || this.isInsideRootView(e.originalEvent.target)){ return }
-
-      const href = e.destination.url
-      if(!this.registerNewLocation(new URL(href))){ return }
-      DOM.dispatchEvent(window, "phx:navigate", {detail: {href, patch: true, pop: true}})
-      this.requestDOMUpdate(() => {
-        if(this.main.isConnected()){
-          this.main.pushLinkPatch(e.originalEvent, href, null)
-        } else {
-          this.replaceMain(href, null)
-        }
-      })
-    }, false)
     window.addEventListener("popstate", event => {
       if(!this.registerNewLocation(window.location)){ return }
       let {type, backType, id, scroll, position} = event.state || {}
@@ -758,6 +743,25 @@ export default class LiveSocket {
           this.main.pushLinkPatch(event, href, null, callback)
         } else {
           this.replaceMain(href, null, callback)
+        }
+      })
+    }, false)
+    window.navigation.addEventListener("navigate", e => {
+      // Ignore this navigate if the event is coming from our own navigation
+      if(this.pendingLinkEvent){
+        this.pendingLinkEvent = null
+        return
+      }
+
+      const href = e.destination.url
+      if(this.pendingLink === href){ return }
+      if(!this.registerNewLocation(new URL(href))){ return }
+      DOM.dispatchEvent(window, "phx:navigate", {detail: {href, patch: true, pop: true}})
+      this.requestDOMUpdate(() => {
+        if(this.main.isConnected()){
+          this.main.pushLinkPatch(e, href, null)
+        } else {
+          this.replaceMain(href, null)
         }
       })
     }, false)
@@ -820,13 +824,13 @@ export default class LiveSocket {
 
     this.withPageLoading({to: href, kind: "patch"}, done => {
       this.main.pushLinkPatch(e, href, targetEl, linkRef => {
-        this.historyPatch(href, linkState, linkRef)
+        this.historyPatch(e, href, linkState, linkRef)
         done()
       })
     })
   }
 
-  historyPatch(href, linkState, linkRef = this.setPendingLink(href)){
+  historyPatch(e, href, linkState, linkRef = this.setPendingLink(href)){
     if(!this.commitPendingLink(linkRef)){ return }
 
     // Increment position for new state
@@ -836,6 +840,7 @@ export default class LiveSocket {
     // store the type for back navigation
     Browser.updateCurrentState((state) => ({...state, backType: "patch"}))
 
+    this.pendingLinkEvent = e
     Browser.pushState(linkState, {
       type: "patch",
       id: this.main.id,

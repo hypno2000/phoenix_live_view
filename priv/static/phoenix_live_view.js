@@ -7303,6 +7303,7 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
       this.roots = {};
       this.href = window.location.href;
       this.pendingLink = null;
+      this.pendingLinkEvent = null;
       this.currentLocation = clone(window.location);
       this.hooks = opts.hooks || {};
       this.uploaders = opts.uploaders || {};
@@ -7864,23 +7865,6 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
           browser_default.updateCurrentState((state) => Object.assign(state, { scroll: window.scrollY }));
         }, 100);
       });
-      window.navigation.addEventListener("navigate", (e) => {
-        if (!e.originalEvent || this.isInsideRootView(e.originalEvent.target)) {
-          return;
-        }
-        const href = e.destination.url;
-        if (!this.registerNewLocation(new URL(href))) {
-          return;
-        }
-        dom_default.dispatchEvent(window, "phx:navigate", { detail: { href, patch: true, pop: true } });
-        this.requestDOMUpdate(() => {
-          if (this.main.isConnected()) {
-            this.main.pushLinkPatch(e.originalEvent, href, null);
-          } else {
-            this.replaceMain(href, null);
-          }
-        });
-      }, false);
       window.addEventListener("popstate", (event) => {
         if (!this.registerNewLocation(window.location)) {
           return;
@@ -7900,6 +7884,27 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
             this.main.pushLinkPatch(event, href, null, callback);
           } else {
             this.replaceMain(href, null, callback);
+          }
+        });
+      }, false);
+      window.navigation.addEventListener("navigate", (e) => {
+        if (this.pendingLinkEvent) {
+          this.pendingLinkEvent = null;
+          return;
+        }
+        const href = e.destination.url;
+        if (this.pendingLink === href) {
+          return;
+        }
+        if (!this.registerNewLocation(new URL(href))) {
+          return;
+        }
+        dom_default.dispatchEvent(window, "phx:navigate", { detail: { href, patch: true, pop: true } });
+        this.requestDOMUpdate(() => {
+          if (this.main.isConnected()) {
+            this.main.pushLinkPatch(e, href, null);
+          } else {
+            this.replaceMain(href, null);
           }
         });
       }, false);
@@ -7958,18 +7963,19 @@ removing illegal node: "${(childNode.outerHTML || childNode.nodeValue).trim()}"
       }
       this.withPageLoading({ to: href, kind: "patch" }, (done) => {
         this.main.pushLinkPatch(e, href, targetEl, (linkRef) => {
-          this.historyPatch(href, linkState, linkRef);
+          this.historyPatch(e, href, linkState, linkRef);
           done();
         });
       });
     }
-    historyPatch(href, linkState, linkRef = this.setPendingLink(href)) {
+    historyPatch(e, href, linkState, linkRef = this.setPendingLink(href)) {
       if (!this.commitPendingLink(linkRef)) {
         return;
       }
       this.currentHistoryPosition++;
       this.sessionStorage.setItem(PHX_LV_HISTORY_POSITION, this.currentHistoryPosition.toString());
       browser_default.updateCurrentState((state) => __spreadProps(__spreadValues({}, state), { backType: "patch" }));
+      this.pendingLinkEvent = e;
       browser_default.pushState(linkState, {
         type: "patch",
         id: this.main.id,
