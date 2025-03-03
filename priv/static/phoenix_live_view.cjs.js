@@ -7707,7 +7707,7 @@ var LiveSocket = class {
       }, 100);
     });
     window.navigation.addEventListener("navigate", (e) => {
-      if (this.isInsideRootView(e.originalEvent.target)) {
+      if (!e.originalEvent || this.isInsideRootView(e.originalEvent.target)) {
         return;
       }
       const href = e.destination.url;
@@ -7717,7 +7717,7 @@ var LiveSocket = class {
       dom_default.dispatchEvent(window, "phx:navigate", { detail: { href, patch: true, pop: true } });
       this.requestDOMUpdate(() => {
         if (this.main.isConnected()) {
-          this.main.pushLinkPatch(href, null);
+          this.main.pushLinkPatch(e.originalEvent, href, null);
         } else {
           this.replaceMain(href, null);
         }
